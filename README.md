@@ -1,4 +1,4 @@
-# Garage v1.1 
+# Diario automezzi v1.1 
 
 Applicazione web per la gestione del garage e il tracciamento degli interventi di manutenzione sui propri veicoli.
 
