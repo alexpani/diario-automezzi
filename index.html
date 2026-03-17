@@ -484,7 +484,7 @@
     <div class="filter-bar">
       <div class="filter-group">
         <div class="filter-label">Veicolo</div>
-        <select class="form-control" id="filter-car" onchange="renderInterventions()">
+        <select class="form-control" id="filter-car" onchange="onFilterCarChange()">
           <option value="">Tutti i veicoli</option>
         </select>
       </div>
@@ -863,9 +863,19 @@ function toggleSort() {
   renderInterventions();
 }
 
+function onFilterCarChange() {
+  document.getElementById('filter-year').value = '';
+  populateYearFilter();
+  renderInterventions();
+}
+
 function populateYearFilter() {
-  const d     = load();
-  const years = [...new Set(d.interventions.map(i => i.date.slice(0, 4)))].sort((a, b) => b - a);
+  const d          = load();
+  const filterCar  = document.getElementById('filter-car').value;
+  const interventions = filterCar
+    ? d.interventions.filter(i => i.carId === filterCar)
+    : d.interventions;
+  const years = [...new Set(interventions.map(i => i.date.slice(0, 4)))].sort((a, b) => b - a);
   const sel   = document.getElementById('filter-year');
   const cur   = sel.value;
   sel.innerHTML = '<option value="">Tutti gli anni</option>' +
