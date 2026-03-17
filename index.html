@@ -168,6 +168,7 @@
     .btn-primary:hover { background: var(--primary-dark); }
     .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
     .btn-secondary:hover { background: var(--border); }
+    .sort-btn { white-space: nowrap; height: 38px; }
     .btn-danger-outline { background: var(--danger-light); color: var(--danger); border: 1px solid #fca5a5; }
     .btn-danger-outline:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
 
@@ -286,6 +287,7 @@
     .int-date-day { font-size: 26px; font-weight: 700; color: var(--primary); line-height: 1; }
     .int-date-mon { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; }
     .int-date-yr { font-size: 11px; color: var(--muted); }
+    .int-date-km { font-size: 10px; color: var(--muted); margin-top: 4px; border-top: 1px solid var(--border); padding-top: 4px; }
     .int-car-tag {
       display: inline-flex;
       align-items: center;
@@ -487,8 +489,20 @@
         </select>
       </div>
       <div class="filter-group">
+        <div class="filter-label">Anno</div>
+        <select class="form-control" id="filter-year" onchange="renderInterventions()">
+          <option value="">Tutti gli anni</option>
+        </select>
+      </div>
+      <div class="filter-group">
         <div class="filter-label">Cerca</div>
         <input type="text" class="form-control" id="filter-search" placeholder="Cerca descrizione o note…" oninput="renderInterventions()">
+      </div>
+      <div class="filter-group" style="flex: 0 0 auto; min-width: 0;">
+        <div class="filter-label">Ordine</div>
+        <button class="btn btn-secondary sort-btn" id="sort-btn" onclick="toggleSort()" title="Cambia ordinamento">
+          <span id="sort-icon">↓</span> <span id="sort-label">Recenti</span>
+        </button>
       </div>
     </div>
 
@@ -837,23 +851,46 @@ function populateCarSelects() {
   const icPrev = ic.value;
   ic.innerHTML = '<option value="">Seleziona veicolo…</option>' + opts;
   if (icPrev) ic.value = icPrev;
+  populateYearFilter();
+}
+
+let sortDesc = true;
+
+function toggleSort() {
+  sortDesc = !sortDesc;
+  document.getElementById('sort-icon').textContent  = sortDesc ? '↓' : '↑';
+  document.getElementById('sort-label').textContent = sortDesc ? 'Recenti' : 'Meno rec.';
+  renderInterventions();
+}
+
+function populateYearFilter() {
+  const d     = load();
+  const years = [...new Set(d.interventions.map(i => i.date.slice(0, 4)))].sort((a, b) => b - a);
+  const sel   = document.getElementById('filter-year');
+  const cur   = sel.value;
+  sel.innerHTML = '<option value="">Tutti gli anni</option>' +
+    years.map(y => `<option value="${y}" ${y === cur ? 'selected' : ''}>${y}</option>`).join('');
 }
 
 function renderInterventions() {
-  const d         = load();
-  const filterCar = document.getElementById('filter-car').value;
-  const search    = document.getElementById('filter-search').value.toLowerCase().trim();
+  const d          = load();
+  const filterCar  = document.getElementById('filter-car').value;
+  const filterYear = document.getElementById('filter-year').value;
+  const search     = document.getElementById('filter-search').value.toLowerCase().trim();
 
   const list = d.interventions
     .filter(i => {
-      if (filterCar && i.carId !== filterCar) return false;
+      if (filterCar  && i.carId          !== filterCar)  return false;
+      if (filterYear && i.date.slice(0,4) !== filterYear) return false;
       if (search) {
         const hay = (i.description + ' ' + (i.notes || '')).toLowerCase();
         if (!hay.includes(search)) return false;
       }
       return true;
     })
-    .sort((a, b) => b.date.localeCompare(a.date));
+    .sort((a, b) => sortDesc
+      ? b.date.localeCompare(a.date)
+      : a.date.localeCompare(b.date));
 
   const n = list.length;
   document.getElementById('interventions-subtitle').textContent =
@@ -863,7 +900,7 @@ function renderInterventions() {
 
   const el = document.getElementById('interventions-list');
   if (list.length === 0) {
-    const filtered = filterCar || search;
+    const filtered = filterCar || filterYear || search;
     el.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">${filtered ? '🔍' : '🔧'}</div>
@@ -876,21 +913,18 @@ function renderInterventions() {
 
   const months = ['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
   el.innerHTML = list.map(i => {
-    const car     = d.cars.find(c => c.id === i.carId);
-    const carName = car ? `${car.brand} ${car.model}` : 'Veicolo rimosso';
-    const dt      = i.date.split('-');
-    const mon     = months[parseInt(dt[1], 10) - 1];
+    const dt  = i.date.split('-');
+    const mon = months[parseInt(dt[1], 10) - 1];
     return `
       <div class="intervention-card">
         <div class="int-date">
           <div class="int-date-day">${dt[2]}</div>
           <div class="int-date-mon">${mon}</div>
           <div class="int-date-yr">${dt[0]}</div>
+          ${i.km ? `<div class="int-date-km">${Number(i.km).toLocaleString('it')} km</div>` : ''}
         </div>
         <div class="int-content">
-          <div class="int-car-tag">🚗 ${esc(carName)}</div>
           <div class="int-desc">${esc(i.description)}</div>
-          <div class="int-meta">${i.km ? `📍 ${Number(i.km).toLocaleString('it')} km` : ''}</div>
           ${i.notes ? `<div class="int-notes">${esc(i.notes)}</div>` : ''}
         </div>
         <div class="int-actions">
