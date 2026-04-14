@@ -119,5 +119,5 @@ process.on('SIGTERM', shutdown);
 
 // ── Avvio ───────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`\nDiario Automezzi → http://localhost:${PORT}  (db: ${DB_FILE})\n`);
+  console.log(`\nCar Tracker → http://localhost:${PORT}  (db: ${DB_FILE})\n`);
 });

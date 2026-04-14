@@ -1,4 +1,4 @@
-# Diario automezzi v1.2
+# Car Tracker v1.3
 
 Applicazione web per la gestione del garage e il tracciamento degli interventi di manutenzione sui propri veicoli.
 
@@ -111,19 +111,19 @@ apt install -y nodejs
 ### 2. Utente dedicato e directory
 
 ```bash
-adduser --system --group --home /opt/diario-automezzi --shell /usr/sbin/nologin diario
-mkdir -p /var/lib/diario-automezzi
-chown diario:diario /var/lib/diario-automezzi
+adduser --system --group --home /opt/car-tracker --shell /usr/sbin/nologin cartracker
+mkdir -p /var/lib/car-tracker
+chown cartracker:cartracker /var/lib/car-tracker
 ```
 
 ### 3. Codice e dipendenze
 
 ```bash
 cd /opt
-git clone https://github.com/alexpani/diario-automezzi.git
-cd diario-automezzi
+git clone https://github.com/alexpani/car-tracker.git
+cd car-tracker
 npm ci --omit=dev
-chown -R diario:diario /opt/diario-automezzi
+chown -R cartracker:cartracker /opt/car-tracker
 ```
 
 > `better-sqlite3` viene compilato nativamente: servono `build-essential` e `python3`, già installati al passo 1.
@@ -136,11 +136,11 @@ Dal tuo PC, copia il file `data.json` esportato dall'hosting precedente nella LX
 scp data.json root@<ip-lxc>:/tmp/data.json
 ```
 
-Nella LXC, esegui l'import come utente `diario` così i permessi sono corretti:
+Nella LXC, esegui l'import come utente `cartracker` così i permessi sono corretti:
 
 ```bash
-sudo -u diario DB_FILE=/var/lib/diario-automezzi/data.db \
-  node /opt/diario-automezzi/scripts/import-json.js /tmp/data.json
+sudo -u cartracker DB_FILE=/var/lib/car-tracker/data.db \
+  node /opt/car-tracker/scripts/import-json.js /tmp/data.json
 rm /tmp/data.json
 ```
 
@@ -148,7 +148,7 @@ Output atteso:
 
 ```
 Import da: /tmp/data.json
-DB target:  /var/lib/diario-automezzi/data.db
+DB target:  /var/lib/car-tracker/data.db
   → cars: N
   → interventions: M
 ✓ Import completato: N veicoli, M interventi
@@ -157,25 +157,25 @@ DB target:  /var/lib/diario-automezzi/data.db
 ### 5. Servizio systemd
 
 ```bash
-cp /opt/diario-automezzi/deploy/diario-automezzi.service /etc/systemd/system/
+cp /opt/car-tracker/deploy/car-tracker.service /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable --now diario-automezzi
-systemctl status diario-automezzi
+systemctl enable --now car-tracker
+systemctl status car-tracker
 ```
 
 L'app risponde su `http://<ip-lxc>:3000`. Log in tempo reale:
 
 ```bash
-journalctl -u diario-automezzi -f
+journalctl -u car-tracker -f
 ```
 
 ### 6. Aggiornamenti successivi
 
 ```bash
-cd /opt/diario-automezzi
+cd /opt/car-tracker
 git pull
 npm ci --omit=dev
-systemctl restart diario-automezzi
+systemctl restart car-tracker
 ```
 
 ### 7. Backup del database
@@ -184,12 +184,16 @@ SQLite supporta backup a caldo; per una copia consistente usa `sqlite3` (o `.bac
 
 ```bash
 apt install -y sqlite3
-sqlite3 /var/lib/diario-automezzi/data.db ".backup '/root/backup-$(date +%F).db'"
+sqlite3 /var/lib/car-tracker/data.db ".backup '/root/backup-$(date +%F).db'"
 ```
 
 Oppure semplicemente copia i file `data.db`, `data.db-wal`, `data.db-shm` quando il servizio è fermo.
 
 ## Changelog
+
+### v1.3
+- Rinominato da "Diario Automezzi" a "Car Tracker" (app, repo, package, paths di deploy)
+- Unit systemd `car-tracker.service`, utente `cartracker`, paths `/opt/car-tracker` e `/var/lib/car-tracker`
 
 ### v1.2
 - Migrazione storage da `data.json` a SQLite (`better-sqlite3`)

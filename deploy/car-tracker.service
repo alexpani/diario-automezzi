@@ -1,14 +1,14 @@
 [Unit]
-Description=Diario Automezzi (Node.js + SQLite)
-Documentation=https://github.com/alexpani/diario-automezzi
+Description=Car Tracker (Node.js + SQLite)
+Documentation=https://github.com/alexpani/car-tracker
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-User=diario
-Group=diario
-WorkingDirectory=/opt/diario-automezzi
+User=cartracker
+Group=cartracker
+WorkingDirectory=/opt/car-tracker
 ExecStart=/usr/bin/node server.js
 Restart=on-failure
 RestartSec=3
@@ -16,14 +16,14 @@ RestartSec=3
 # Ambiente
 Environment=NODE_ENV=production
 Environment=PORT=3000
-Environment=DB_FILE=/var/lib/diario-automezzi/data.db
+Environment=DB_FILE=/var/lib/car-tracker/data.db
 
 # Hardening
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/lib/diario-automezzi
+ReadWritePaths=/var/lib/car-tracker
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
