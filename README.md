@@ -180,20 +180,36 @@ systemctl restart car-tracker
 
 ### 7. Backup del database
 
-SQLite supporta backup a caldo; per una copia consistente usa `sqlite3` (o `.backup`):
+SQLite supporta backup a caldo. Per una copia consistente una tantum:
 
 ```bash
 apt install -y sqlite3
 sqlite3 /var/lib/car-tracker/data.db ".backup '/root/backup-$(date +%F).db'"
 ```
 
-Oppure semplicemente copia i file `data.db`, `data.db-wal`, `data.db-shm` quando il servizio è fermo.
+Per un backup automatico giornaliero con retention 14 giorni:
+
+```bash
+apt install -y sqlite3
+mkdir -p /var/backups/car-tracker
+cat > /etc/cron.daily/car-tracker-backup <<'EOF'
+#!/bin/sh
+DEST=/var/backups/car-tracker/data-$(date +\%F).db
+sqlite3 /var/lib/car-tracker/data.db ".backup '$DEST'"
+find /var/backups/car-tracker -name 'data-*.db' -mtime +14 -delete
+EOF
+chmod +x /etc/cron.daily/car-tracker-backup
+```
+
+In alternativa puoi semplicemente copiare i file `data.db`, `data.db-wal`, `data.db-shm` quando il servizio è fermo.
 
 ## Changelog
 
 ### v1.3
 - Rinominato da "Diario Automezzi" a "Car Tracker" (app, repo, package, paths di deploy)
 - Unit systemd `car-tracker.service`, utente `cartracker`, paths `/opt/car-tracker` e `/var/lib/car-tracker`
+- Guida backup automatico via `cron.daily`
+- Aggiunto `CLAUDE.md` con le note di progetto per future sessioni Claude Code
 
 ### v1.2
 - Migrazione storage da `data.json` a SQLite (`better-sqlite3`)
