@@ -1,6 +1,6 @@
 <?php
 /**
- * Diario Automezzi — API
+ * Car Tracker — API
  * Legge e scrive data.json nella stessa cartella.
  */
 
