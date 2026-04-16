@@ -210,6 +210,7 @@ In alternativa puoi semplicemente copiare i file `data.db`, `data.db-wal`, `data
 - Unit systemd `car-tracker.service`, utente `cartracker`, paths `/opt/car-tracker` e `/var/lib/car-tracker`
 - Guida backup automatico via `cron.daily`
 - Aggiunto `CLAUDE.md` con le note di progetto per future sessioni Claude Code
+- Rimosso il workflow FTP `.github/workflows/deploy.yml` (deploy legacy su hosting condiviso): il deploy avviene esclusivamente via `git pull` sulla LXC
 
 ### v1.2
 - Migrazione storage da `data.json` a SQLite (`better-sqlite3`)

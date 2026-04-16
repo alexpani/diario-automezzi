@@ -11,7 +11,7 @@ Single-page web app per tenere traccia del garage personale (veicoli) e degli in
 - **Frontend**: `index.html` — HTML/CSS/JS vanilla, nessun bundler, nessun framework. Una sola pagina con due tab (Garage, Interventi) e logica di sync verso il backend.
 - **Backend**: `server.js` — Express 4, single-file, espone GET/PUT su `/api/data` (e alias legacy `/api.php`). Usa `better-sqlite3` in modalità sincrona.
 - **DB**: SQLite locale (`data.db`), WAL mode, due tabelle `cars` e `interventions` con FK `ON DELETE CASCADE`.
-- **Legacy**: `api.php` esiste ancora come fallback PHP per hosting condiviso, e `.github/workflows/deploy.yml` fa FTP deploy sulla stessa struttura. Non più usato in produzione ma lasciato per compatibilità.
+- **Legacy**: `api.php` esiste ancora come fallback PHP per hosting condiviso — specchio del contratto API su `data.json`. Non usato in produzione LXC, lasciato come riferimento.
 
 ## Contratto API (da non rompere)
 
@@ -50,7 +50,6 @@ Variabili d'ambiente: `PORT`, `DB_FILE`.
 | `index.html` | Frontend completo (HTML + CSS + JS inline). Nessun build. La logica di sync è in fondo al file. |
 | `api.php` | Fallback legacy per hosting PHP — specchio del contratto API su `data.json`. Non usato in produzione LXC. |
 | `deploy/car-tracker.service` | Unit systemd per il deploy su LXC (utente `cartracker`, `/opt/car-tracker`, `/var/lib/car-tracker`). |
-| `.github/workflows/deploy.yml` | FTP deploy legacy verso hosting condiviso. Non usato in produzione. |
 | `README.md` | Guida utente (installazione, API, migrazione, deploy LXC). Lingua: italiano. |
 
 ## Architettura di produzione
@@ -70,7 +69,7 @@ Il frontend è servito da Express (`express.static(__dirname)` in fondo a `serve
 - **Mantenere il contratto API**: non introdurre breaking change senza aggiornare anche il frontend. Il PUT resta full-replace; se serve granularità, aggiungi nuove rotte invece di rompere `/api/data`.
 - **Semplicità > astrazioni**: niente ORM, niente framework frontend, niente build step. `better-sqlite3` con prepared statement basta.
 - **Nessun dato committato**: `data.db`, `data.db-*` (WAL/SHM) e `data.json` sono in `.gitignore`. Mai committare dati reali.
-- **Secret/credenziali**: niente `.env` nel repo. FTP secrets sono in GitHub Actions.
+- **Secret/credenziali**: niente `.env` nel repo. Nessun secret richiesto per il deploy LXC (pull + restart manuali).
 - **Versioning**: `package.json` segue SemVer laschetto. Bump minor quando cambiano storage/deploy (es. 1.2 SQLite, 1.3 rename). Tieni il Changelog in `README.md` in sync.
 
 ## Rischi da evitare
